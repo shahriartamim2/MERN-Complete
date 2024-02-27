@@ -1,26 +1,56 @@
-import React from 'react'
-import { useState } from 'react';
+/* eslint-disable no-unused-vars */
+import React from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../store/auth";
 
 const Login = () => {
-
-const [user, setUser] = useState({
-  email:"",
-  password:""
-});
-
-const handleInput = (e) => {
-  let name = e.target.name;
-  let value = e.target.value;
-
-  setUser({
-    ...user,
-    [name]: value,
+  const [user, setUser] = useState({
+    email: "",
+    password: "",
   });
-};
+  const navigate = useNavigate();
+  const {storeTokenInLS} = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleInput = (e) => {
+    let name = e.target.name;
+    let value = e.target.value;
+
+    setUser({
+      ...user,
+      [name]: value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Login successful");
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(user),
+      });
+
+      if (response.ok) {
+        const res_data = await response.json();
+        storeTokenInLS(res_data.token);
+        console.log(res_data);
+        setUser({
+          email: "",
+          password: "",
+        });
+        alert("Login successful");
+        navigate("/");
+
+        // const res_data = await
+      }
+    } catch (error) {
+      console.log("login error", error);
+      alert("invalid credentials");
+    }
   };
 
   return (
@@ -76,6 +106,6 @@ const handleInput = (e) => {
       </section>
     </div>
   );
-}
+};
 
-export default Login
+export default Login;
